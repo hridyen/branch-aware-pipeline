@@ -1,0 +1,12 @@
+{
+  "name": "branch-aware-pipeline",
+  "version": "1.0.0",
+  "description": "Branch-aware CI/CD pipeline project",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
