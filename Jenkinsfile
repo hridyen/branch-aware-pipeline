@@ -18,8 +18,8 @@ pipeline {
 
                     def branch = ""
 
-                    if (env.GITHUB_REF) {
-                        branch = env.GITHUB_REF.replace("refs/heads/", "")
+                    if (env.ref) {
+                        branch = env.ref.replace("refs/heads/", "")
                     } else {
                         branch = "unknown"
                     }
