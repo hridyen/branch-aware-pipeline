@@ -1,139 +1,171 @@
-# Branch-Aware CI/CD Pipeline with Jenkins, Docker, and Webhooks
+# Branch-Aware CI/CD Pipeline using Jenkins
 
-![GitHub last commit](https://img.shields.io/github/last-commit/hridyen/branch-aware-pipeline)
 ![Jenkins](https://img.shields.io/badge/Jenkins-2.0+-blue?logo=jenkins)
 ![Docker](https://img.shields.io/badge/Docker-Latest-blue?logo=docker)
 ![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)
+![GitHub last commit](https://img.shields.io/github/last-commit/hridyen/branch-aware-pipeline)
 
-## 🚀 Project Overview
+A single Jenkins pipeline that detects Git branches dynamically using webhooks and performs controlled deployments only for selected environments (**dev** and **prod**).
 
-This project demonstrates a sophisticated, production-oriented CI/CD pipeline built with **Jenkins** and **Docker**. Unlike traditional multibranch pipelines, this system uses a **single Jenkins pipeline** that intelligently detects Git branches from GitHub webhook payloads and performs conditional deployments.
+## 🎯 Goal
+To build a scalable, production-style CI/CD pipeline that avoids multibranch complexity and uses a centralized, branch-aware deployment strategy.
 
-It features branch-specific logic, dynamic container naming, and automated environment-based port mapping, making it a robust solution for developers looking to manage multiple environments with minimal overhead.
+---
 
-## 🏗 Architecture & Workflow
+## ⚙️ Tech Stack
 
-The system follows a modern DevOps workflow where every git push is processed and deployed based on its target branch.
+*   **Jenkins** (Pipeline as Code)
+*   **Docker**
+*   **Node.js (Express)**
+*   **Git & GitHub**
+*   **GitHub Webhooks**
+*   **ngrok** (for local webhook exposure)
+*   **Ubuntu** (Jenkins agent)
 
-```mermaid
-graph TD
-    A[Remote Push] -->|Webhook| B[ngrok Tunnel]
-    B -->|Forward| C[Jenkins]
-    C -->|Trigger| D[Generic Webhook Trigger]
-    D --> E{Branch Aware Logic}
-    E -->|Dev Branch| F[Build & Deploy to :3001]
-    E -->|Prod Branch| G[Build & Deploy to :3002]
-    E -->|Other Branches| H[Skip Deployment]
-```
+---
 
-1.  **Developer Push**: A developer pushes code to GitHub.
-2.  **Webhook Trigger**: GitHub sends a POST request with the payload (`ref`) to our Jenkins server (tunneled via **ngrok**).
-3.  **Branch Detection**: Jenkins extracts the branch name from the webhook payload using the **Generic Webhook Trigger** plugin.
-4.  **Conditional Deployment**: The pipeline validates the branch against an allowed list (`dev`, `prod`).
-5.  **Dockerization**: An environment-specific Docker image is built.
-6.  **Dynamic Execution**: A container is launched with unique naming and port mapping (`3001` for dev, `3002` for prod).
+## 🔥 Key Features
 
-## ✨ Key Features
+*   **Single Unified Pipeline**: One pipeline handling multiple branches efficiently.
+*   **Dynamic Branch Detection**: Extracts branch name directly from webhook payload (`ref`).
+*   **Controlled Execution**: Strict guardrails allowing only `dev` and `prod` branch deployments.
+*   **Automated Filtering**: Intelligently skips `stage`, `uat`, and `main` branches to maintain environment integrity.
+*   **Docker-based Workflows**: Consistent builds and deployments using containerization.
+*   **Dynamic Port & Name Allocation**: Auto-assigns ports (`3001` for dev, `3002` for prod) and unique container names.
+*   **Distributed Builds**: Configured to run on Jenkins master + Ubuntu agent setup.
+*   **Reliable Triggers**: Uses Generic Webhook Trigger for event-driven execution.
 
-*   **Single Pipeline Architecture**: Centralized management for multiple branches without the complexity of multibranch pipeline configurations.
-*   **Intelligent Branch Detection**: Uses GitHub webhook `ref` payload for real-time branch identification.
-*   **Conditional Workflows**: Automatically skips deployments for untracked branches (e.g., `uat`, `stage`).
-*   **Environment Isolation**: Uses dynamic Docker container naming and port mapping to prevent conflicts.
-*   **Local Jenkins Integration**: Seamlessly integrates local Jenkins instances with GitHub using **ngrok**.
+---
 
-## 🛠 Tech Stack
+## 🏗️ Architecture
 
-*   **Jenkins**: Pipeline as Code (Groovy).
-*   **Docker**: Containerization and deployment.
-*   **Node.js (Express)**: Sample microservice showing environment-based behavior.
-*   **GitHub Webhooks**: Real-time trigger mechanism.
-*   **ngrok**: Secure tunnel for public webhook access.
+1.  **GitHub Repo**: Multiple branches (`dev`, `prod`, `stage`, `uat`, `main`).
+2.  **Webhook Flow**: GitHub sends payload → **ngrok** tunnel → **Jenkins**.
+3.  **Jenkins Logic**: **Generic Webhook Trigger** extracts the branch name.
+4.  **Security**: Conditional logic blocks unauthorized branch deployments.
+5.  **Agent Execution**: Jenkins agent pulls code, builds Docker image, and deploys container.
 
-## 📋 Prerequisites
+---
 
-*   Jenkins installed (with Docker and Git plugins).
-*   Docker engine running on the Jenkins host.
-*   [Generic Webhook Trigger](https://plugins.jenkins.io/generic-webhook-trigger/) plugin installed in Jenkins.
-*   [ngrok](https://ngrok.com/) installed for local exposure.
-*   GitHub repository with admin access for webhooks.
+## 🔄 Workflow / How It Works
 
-## ⚙️ Setup Instructions
+1.  Developer pushes code to any branch.
+2.  GitHub triggers a webhook.
+3.  Jenkins receives the webhook via **ngrok**.
+4.  Pipeline extracts the branch name from the payload (`refs/heads/...`).
+5.  **Validation**: If branch is `dev` or `prod`, the pipeline continues.
+6.  **Abortion**: If branch is `stage`, `uat`, or `main`, the pipeline aborts gracefully.
+7.  Jenkins agent checks out the correct branch.
+8.  Docker image is built with environment-specific tagging.
+9.  Container is deployed on assigned port with custom configuration.
 
-### 1. Project Setup
-Clone this repository and ensure all files are present:
-```bash
-git clone https://github.com/hridyen/branch-aware-pipeline.git
-cd branch-aware-pipeline
-```
+---
 
-### 2. Jenkins Setup (Docker-based)
-Ensure Jenkins has permission to run Docker commands:
-```bash
-sudo usermod -aG docker jenkins
-sudo systemctl restart jenkins
-```
+## 🛠️ Setup Instructions
 
-### 3. ngrok Setup
-Expose your local Jenkins (default port 8080) to the internet:
-```bash
-ngrok http 8080
-```
-Copy the generated `https` URL (e.g., `https://random-id.ngrok.io`).
+### Prerequisites
+*   Jenkins installed (Docker or native)
+*   Ubuntu agent configured and connected
+*   Docker installed on the agent
+*   GitHub repository with multiple branches
+*   ngrok installed
 
-### 4. GitHub Webhook Configuration
-1.  Go to **Repository Settings** > **Webhooks** > **Add webhook**.
-2.  **Payload URL**: `https://<YOUR_NGROK_URL>/generic-webhook-trigger/invoke`
-3.  **Content type**: `application/json`
-4.  **Events**: Select `Just the push event`.
+### Installation
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/hridyen/branch-aware-pipeline.git
+    cd branch-aware-pipeline
+    ```
+2.  Create required branches: `dev`, `prod`, `stage`, `uat`, `main`.
+3.  Add application code, `Dockerfile`, and `Jenkinsfile`.
 
-## 📜 Jenkins Pipeline Explanation
+### Configuration
+1.  Install Jenkins plugins: **Git**, **GitHub**, **Generic Webhook Trigger**.
+2.  Configure your Jenkins agent (node).
+3.  Set up **Generic Webhook Trigger** with a secure token.
+4.  Configure GitHub webhook using your **ngrok** URL.
 
-The `Jenkinsfile` follows a structured multi-stage logic:
+### Running the Project
+1.  Start ngrok: `ngrok http 8080`.
+2.  Push code to the `dev` or `prod` branch.
+3.  The Jenkins pipeline will trigger automatically.
+4.  Verify the running container on the assigned port (`3001` or `3002`).
 
-1.  **Detect Branch**: Extracts the branch name from the GitHub `ref` payload.
-2.  **Check Allowed**: Validates if the branch is `dev` or `prod`. If not, the pipeline aborts gracefully.
-3.  **Build Image**: Builds a Docker image tagged with the branch name (e.g., `branch-app:dev`).
-4.  **Run Container**:
-    *   Removes existing containers of the same name.
-    *   Assigns **3001** for `dev` and **3002** for `prod`.
-    *   Passes the branch name as an environment variable to the application.
+---
 
-## 🌿 Branching Strategy
+## 🔗 Integrations
 
-| Branch | Behavior | Resulting Container | Mapping |
-| :--- | :--- | :--- | :--- |
-| `dev` | **Deploy** | `branch-app-dev` | Port 3001 |
-| `prod` | **Deploy** | `branch-app-prod` | Port 3002 |
-| `uat` / `stg` | **Ignore** | N/A | Pipeline Aborted |
+*   **GitHub Webhooks**: Event-driven automation for real-time CI.
+*   **ngrok**: Securely exposes local Jenkins instances to GitHub.
+*   **Docker**: Ensures isolated and reproducible deployment environments.
 
-## 🕹 How It Works (End-to-End)
+---
 
-1.  Push a change to the `dev` branch.
-2.  Jenkins starts the build immediately.
-3.  Logs will show: `Branch detected: dev`.
-4.  Access the app at `http://localhost:3001`.
-5.  Push to `prod`, and access via `http://localhost:3002`.
-6.  Push to any other branch, and watch Jenkins skip the deployment steps.
+## 📦 CI/CD Pipeline
+
+### Trigger
+*   GitHub Webhook via **Generic Webhook Trigger**.
+
+### Build
+*   Jenkins checks out the specific branch.
+*   Docker image is built and tagged.
+
+### Deploy
+*   **dev**: Deployed on Port **3001**.
+*   **prod**: Deployed on Port **3002**.
+
+---
+
+## 🌿 Branch Strategy
+
+| Branch | Strategy | Deployment Port |
+| :--- | :--- | :--- |
+| `dev` | Development & Auto-Deploy | `3001` |
+| `prod` | Production-Ready Deployment | `3002` |
+| `stage` | Not allowed in pipeline | N/A |
+| `uat` | Not allowed in pipeline | N/A |
+| `main` | Source of truth (Manual deployment) | N/A |
+
+---
 
 ## 📸 Screenshots / Output
 
-> [!NOTE]
-> Add your actual terminal and browser screenshots here to showcase the live pipeline!
+### Jenkins Stage View
+*Overview of the pipeline execution flow.*
+![Jenkins Stage View](screenshots/jenkins_stage_view.png)
 
-*   **Jenkins Console Output**: Showing branch detection and successful build.
-*   **Docker Container List**: `docker ps` showing both `dev` and `prod` containers running.
-*   **Web Console**: Browser snapshots showing "🔥 Running from branch: dev/prod".
+### Successful Branch Detection
+*Jenkins detecting 'dev' branch from webhook payload.*
+![Jenkins Console](screenshots/jenkins_console.png)
+
+### ngrok Local Tunnel
+*Exposing local Jenkins to GitHub via ngrok.*
+![ngrok Tunnel](screenshots/ngrok.png)
+
+---
 
 ## 🚀 Future Improvements
 
-*   [ ] Implement **Slack/Discord Notifications** for build status.
-*   [ ] Integration with **SonarQube** for code quality analysis.
-*   [ ] Use of **Helm Charts** for Kubernetes-based deployment.
-*   [ ] Implement private Docker Registry for image management.
+*   [ ] Add **Automated Testing** stage (Unit & Integration).
+*   [ ] Integrate **SonarQube** for code quality gates.
+*   [ ] Add **Trivy** for container security scanning.
+*   [ ] Implement **Manual Approval** step before `prod` deployment.
+*   [ ] Migrate deployment to **AWS EC2/EKS** for cloud scalability.
 
-## 🤝 Conclusion
+---
 
-This project serves as a practical blueprint for building scalable, branch-aware CI/CD pipelines. It demonstrates the power of Jenkins automation combined with Docker containerization to manage complex environment deployments efficiently.
+## 📌 Learnings
+
+*   Differentiating between webhook vs. manual triggers.
+*   Implementing branch-aware logic in a single pipeline script.
+*   Leveraging **Generic Webhook Trigger** for precise CI control.
+*   Debugging distributed Jenkins builds and Docker socket permissions.
+*   Managing environment-specific variables and port mapping.
+
+---
+
+## 🧠 Conclusion
+This project demonstrates a real-world DevOps approach to building a scalable and maintainable CI/CD pipeline. By implementing branch-aware logic and webhook-driven automation, it showcases production-level practices that reduce complexity and improve deployment control.
 
 ---
 Developed by [Hridyen](https://github.com/hridyen) | [LinkedIn](https://linkedin.com/in/hridyen)
