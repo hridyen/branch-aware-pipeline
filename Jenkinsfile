@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'ubuntu-agent' }
 
     environment {
         ALLOWED_BRANCHES = "dev,prod"
@@ -59,7 +59,7 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${env.BRANCH_NAME} ."
+                sh "docker build --no-cache -t ${IMAGE_NAME}:${env.BRANCH_NAME} ."
             }
         }
 
