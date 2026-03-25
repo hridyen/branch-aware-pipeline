@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/hridyen/branch-aware-pipeline/issues"
   },
-  "homepage": "https://github.com/hridyen/branch-aware-pipeline#readme"
+  "homepage": "https://github.com/hridyen/branch-aware-pipeline#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
